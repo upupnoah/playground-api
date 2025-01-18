@@ -15,25 +15,63 @@
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::{handlers, requests, responses};
+use crate::{handlers, requests};
 
 #[derive(OpenApi)]
 #[openapi(
     paths(
         handlers::playbook::create,
-        handlers::playbook::detail,
-        handlers::playbook::update,
         handlers::playbook::delete,
+        handlers::playbook::start,
+
+        handlers::logger::logs,
+
+        handlers::file::get,
+        handlers::file::create,
+        handlers::file::update,
+        handlers::file::delete,
+        handlers::file::copy,
+        handlers::file::rename,
+
+        handlers::folder::get,
+        handlers::folder::tree,
+        handlers::folder::create,
+        handlers::folder::delete,
+        handlers::folder::copy,
+        handlers::folder::rename,
     ),
     components(
         schemas(
             requests::playbook::CreatePlaybookRequest,
-            requests::playbook::UpdatePlaybookRequest,
-            responses::playbook::PlaybookResponse,
+            requests::file::FileRequest,
+            requests::file::DestinationRequest,
+
+            amp_common::resource::ActorSpec,
+            amp_common::resource::CharacterSpec,
+            amp_common::resource::Partner,
+            amp_common::resource::PlaybookSpec,
+            amp_common::resource::Preface,
+
+            amp_common::schema::Build,
+            amp_common::schema::BuildpacksConfig,
+            amp_common::schema::Deploy,
+            amp_common::schema::DockerfileConfig,
+            amp_common::schema::GitReference,
+            amp_common::schema::LocalPartner,
+            amp_common::schema::Metadata,
+            amp_common::schema::Port,
+            amp_common::schema::RegisteredPartner,
+            amp_common::schema::Service,
+
+            amp_common::scm::content::Content,
+            amp_common::scm::content::File,
+            amp_common::scm::git::Tree,
+            amp_common::scm::git::TreeEntry,
         )
     ),
     tags(
         (name = "Playbooks", description = "The Playbooks Service Handlers"),
+        (name = "Logging", description = "The Logging Service Handlers"),
     ),
 )]
 struct ApiDoc;

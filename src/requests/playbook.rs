@@ -12,19 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use amp_common::resource::Preface;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct CreatePlaybookRequest {
-    pub title: String,
-    pub description: Option<String>,
-    pub preface: Preface,
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct UpdatePlaybookRequest {
-    pub title: Option<String>,
-    pub description: Option<String>,
+    /// Source code repository the partner should be cloned from.
+    /// e.g. https://github.com/amphitheatre-app/amphitheatre.git.
+    pub repo: String,
+    /// Git branch the partner should be cloned from. eg. master or main
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub branch: Option<String>,
+    /// Git tag the partner should be cloned from. eg. v1.0
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tag: Option<String>,
+    /// A commit hash like rev = "4c59b707", or a named reference exposed by
+    /// the remote repository such as rev = "refs/pull/493/head". What references
+    /// are available varies by where the repo is hosted.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rev: Option<String>,
 }

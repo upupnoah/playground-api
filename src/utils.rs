@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use url::Url;
 
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct PlaybookResponse {
-    /// The playbook ID in Amphitheatre.
-    pub id: String,
-    /// The title of the playbook.
-    pub title: String,
-    /// The description of the playbook.
-    pub description: String,
-    /// When the playbook was created in Amphitheatre.
-    pub created_at: DateTime<Utc>,
-    /// When the playbook was last updated in Amphitheatre.
-    pub updated_at: DateTime<Utc>,
+use crate::errors::{ApiError, Result};
+
+/// Resolve the repo from the URL.
+pub fn repo(url: &str) -> Result<String> {
+    let url = Url::parse(url).map_err(ApiError::InvalidRepoAddress)?;
+    let mut repo = url.path().replace(".git", "");
+    repo = repo.trim_start_matches('/').to_string();
+
+    Ok(repo)
+}
+pub fn unwrap_or_error<T>(option: Option<T>, error_message: &str) -> Result<T, ApiError> {
+    match option {
+        Some(value) => Ok(value),
+        None => Err(ApiError::BadPlaybookRequest(error_message.to_string())),
+    }
 }

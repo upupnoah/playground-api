@@ -12,20 +12,56 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use amp_common::http::HTTPError;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 use thiserror::Error;
 use tracing::error;
 
-#[derive(Serialize, Deserialize, Debug, Error)]
+pub type Result<T, E = ApiError> = std::result::Result<T, E>;
+
+#[derive(Debug, Error)]
 pub enum ApiError {
     #[error("Internal Server Error")]
     InternalServerError,
+
     #[error("Not Found")]
     NotFound,
+
+    #[error("Not Found Playbook: {0}")]
+    NotFoundPlaybook(HTTPError),
+
+    #[error("Failed to create playbook: {0}")]
+    FailedToCreatePlaybook(HTTPError),
+
+    #[error("Failed to delete playbook: {0}")]
+    FailedToDeletePlaybook(HTTPError),
+
+    #[error("Failed to start playbook: {0}")]
+    FailedToStartPlaybook(HTTPError),
+
+    #[error("Not Found Content: {0}")]
+    NotFoundContent(String),
+
+    #[error("InvalidRepoAddress: {0}")]
+    InvalidRepoAddress(#[source] url::ParseError),
+
+    #[error("Not Found Folder: {0}")]
+    NotFoundFolder(String),
+
+    #[error("Failed to synchronize: {0}")]
+    FailedToSynchronize(HTTPError),
+
+    #[error("Bad Playbook: {0}")]
+    BadPlaybook(String),
+
+    #[error("Not Found Repo: {0}")]
+    NotFoundRepo(anyhow::Error),
+
+    #[error("Bad Playbook Request: {0}")]
+    BadPlaybookRequest(String),
 }
 
 impl IntoResponse for ApiError {
@@ -33,7 +69,19 @@ impl IntoResponse for ApiError {
         let (status, message) = match self {
             Self::InternalServerError => (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()),
             Self::NotFound => (StatusCode::NOT_FOUND, self.to_string()),
+            Self::NotFoundPlaybook(e) => (StatusCode::NOT_FOUND, e.to_string()),
+            Self::FailedToCreatePlaybook(e) => (StatusCode::BAD_REQUEST, e.to_string()),
+            Self::FailedToDeletePlaybook(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            Self::FailedToStartPlaybook(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            Self::NotFoundContent(e) => (StatusCode::NOT_FOUND, e.to_string()),
+            Self::InvalidRepoAddress(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            Self::NotFoundFolder(e) => (StatusCode::NOT_FOUND, e.to_string()),
+            Self::FailedToSynchronize(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            Self::BadPlaybook(e) => (StatusCode::BAD_REQUEST, e.to_string()),
+            Self::NotFoundRepo(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            Self::BadPlaybookRequest(e) => (StatusCode::BAD_REQUEST, e.to_string()),
         };
+
         error!("{} - {}", status, message);
         (status, Json(json!({ "message": message }))).into_response()
     }

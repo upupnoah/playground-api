@@ -14,17 +14,35 @@
 
 use std::sync::Arc;
 
-use axum::routing::{delete, get, patch, post};
+use axum::routing::{delete, get, post, put};
 use axum::Router;
 
 use crate::context::Context;
-use crate::handlers;
+use crate::handlers::{file, folder, logger, playbook};
 
 pub fn build() -> Router<Arc<Context>> {
     Router::new()
         // playbooks
-        .route("/v1/playbooks", post(handlers::playbook::create))
-        .route("/v1/playbooks/:id", get(handlers::playbook::detail))
-        .route("/v1/playbooks/:id", patch(handlers::playbook::update))
-        .route("/v1/playbooks/:id", delete(handlers::playbook::delete))
+        .route("/v1/playbooks", post(playbook::create))
+        .route("/v1/playbooks/{id}", delete(playbook::delete))
+        .route("/v1/playbooks/{id}/actions/start", get(playbook::start))
+        //
+        // logging
+        .route("/v1/playbooks/{id}/logs", get(logger::logs))
+        //
+        // files
+        .route("/v1/playbooks/{id}/files/{path}", get(file::get))
+        .route("/v1/playbooks/{id}/files/{path}", post(file::create))
+        .route("/v1/playbooks/{id}/files/{path}", put(file::update))
+        .route("/v1/playbooks/{id}/files/{path}", delete(file::delete))
+        .route("/v1/playbooks/{id}/files/{path}/actions/copy", post(file::copy))
+        .route("/v1/playbooks/{id}/files/{path}/actions/move", post(file::rename))
+        //
+        // folders
+        .route("/v1/playbooks/{id}/folders/{path}", get(folder::get))
+        .route("/v1/playbooks/{id}/tree", get(folder::tree))
+        .route("/v1/playbooks/{id}/folders/{path}", post(folder::create))
+        .route("/v1/playbooks/{id}/folders/{path}", delete(folder::delete))
+        .route("/v1/playbooks/{id}/folders/{path}/actions/copy", post(folder::copy))
+        .route("/v1/playbooks/{id}/folders/{path}/actions/move", post(folder::rename))
 }
